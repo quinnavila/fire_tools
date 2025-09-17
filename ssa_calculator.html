@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Security Claim Calc</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-color: #3a3a3a;
+            --heading-color: #1a253c;
+            --subtle-text-color: #7f8c8d;
+            --border-color: #e9ecef;
+            --input-bg-color: #f8f9fa;
+            --input-border-color: #ced4da;
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --table-header-bg: #f8f9fa;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --highlight-bg: #d1ecf1;
+            --disclaimer-bg: #fff3cd;
+            --disclaimer-text: #856404;
+            --disclaimer-border: #ffeeba;
+            --chart-grid-color: rgba(0, 0, 0, 0.05);
+            --color-62: #007bff;
+            --color-67: #28a745;
+            --color-70: #fd7e14;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121a26;
+                --card-bg-color: #1e293b;
+                --text-color: #cbd5e1;
+                --heading-color: #ffffff;
+                --subtle-text-color: #94a3b8;
+                --border-color: #334155;
+                --input-bg-color: #334155;
+                --input-border-color: #475569;
+                --primary-color: #38bdf8;
+                --primary-hover-color: #7dd3fc;
+                --table-header-bg: #334155;
+                --success-bg: #166534;
+                --success-text: #dcfce7;
+                --highlight-bg: #0e7490;
+                --disclaimer-bg: #422006;
+                --disclaimer-text: #fed7aa;
+                --disclaimer-border: #9a3412;
+                --chart-grid-color: rgba(255, 255, 255, 0.1);
+                --color-62: #38bdf8;
+                --color-67: #4ade80;
+                --color-70: #fb923c;
+            }
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: var(--card-bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            max-width: 900px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        h1 {
+            text-align: center;
+            color: var(--heading-color);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        p.subtitle {
+            text-align: center;
+            color: var(--subtle-text-color);
+            margin-bottom: 20px;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--disclaimer-text);
+            background-color: var(--disclaimer-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--disclaimer-border);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 25px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+        input[type="number"], select {
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+        button {
+            grid-column: 1 / -1;
+            padding: 14px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px color-mix(in srgb, var(--primary-color) 30%, transparent);
+        }
+        button:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        #results, #formulas-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+        #summary {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+        .details-container {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        details {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        summary {
+            padding: 14px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: var(--table-header-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        summary::after {
+            content: '+';
+            font-size: 1.5em;
+            transition: transform 0.2s ease-in-out;
+        }
+        details[open] > summary::after {
+            transform: rotate(45deg);
+        }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        .summary-table {
+            margin-top: 25px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .summary-table th, .summary-table td {
+            padding: 14px;
+            text-align: center;
+        }
+        .summary-table tbody th {
+            text-align: left;
+        }
+        .details-table th, .details-table td {
+            border-top: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: right;
+            white-space: nowrap;
+            font-size: 0.9em;
+        }
+        .details-table th {
+            background-color: var(--table-header-bg);
+            text-align: center;
+            font-weight: 600;
+        }
+        .highlight-col {
+            background-color: var(--highlight-bg);
+        }
+        #formulas-section h2 { color: var(--heading-color); text-align: center; font-weight: 700; }
+        .formula { background-color: var(--table-header-bg); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-family: 'Courier New', Courier, monospace; }
+        .formula strong { color: var(--primary-color); }
+        
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } body { padding: 20px 10px; } .container { padding: 25px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Social Security Claim Calc</h1>
+        <p class="subtitle">Find the optimal Social Security strategy based on your personal savings.</p>
+        <div class="disclaimer">
+            This calculator is for demonstration purposes only and does not constitute financial advice.
+        </div>
+
+        <form id="ssa-form">
+            <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="currentSavings">Savings at Age 62 ($)</label>
+                    <input type="number" id="currentSavings" value="500000" required>
+                </div>
+                <div class="form-group">
+                    <label for="benefit62">Monthly Benefit at Age 62 ($)</label>
+                    <input type="number" id="benefit62" value="1950" required>
+                </div>
+                <div class="form-group">
+                    <label for="benefit67">Monthly Benefit at Age 67 ($)</label>
+                    <input type="number" id="benefit67" value="2800" required>
+                </div>
+                <div class="form-group">
+                    <label for="benefit70">Monthly Benefit at Age 70 ($)</label>
+                    <input type="number" id="benefit70" value="3500" required>
+                </div>
+                <div class="form-group">
+                    <label for="lifeExpectancy">Life Expectancy (Age)</label>
+                    <input type="number" id="lifeExpectancy" value="90" required>
+                </div>
+                <div class="form-group">
+                    <label for="annualExpenses">Annual Living Expenses ($)</label>
+                    <input type="number" id="annualExpenses" value="40000" required>
+                </div>
+                <div class="form-group">
+                    <label for="investmentReturn">Annual After-Tax Investment Return (%)</label>
+                    <input type="number" id="investmentReturn" step="0.1" value="5.0" required>
+                </div>
+                 <div class="form-group">
+                    <label for="inflationRate">Annual Inflation Rate (%)</label>
+                    <input type="number" id="inflationRate" step="0.1" value="3.0" required>
+                </div>
+            </div>
+            <button type="submit">Optimize Strategy</button>
+        </form>
+
+        <div id="results">
+            <div id="summary"></div>
+            <canvas id="portfolioChart"></canvas>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Claim at 62</th>
+                        <th>Claim at 67</th>
+                        <th>Claim at 70</th>
+                    </tr>
+                </thead>
+                <tbody id="summary-table-body"></tbody>
+            </table>
+            <div class="details-container">
+                <details>
+                    <summary>Details for Claiming at 62</summary>
+                    <div class="table-container">
+                        <table class="details-table">
+                            <thead><tr><th>Age</th><th>Start Balance</th><th>Growth</th><th>SS Income</th><th>Expenses</th><th>Net Change</th><th>End Balance</th></tr></thead>
+                            <tbody id="table-body-62"></tbody>
+                        </table>
+                    </div>
+                </details>
+                <details>
+                    <summary>Details for Claiming at 67</summary>
+                    <div class="table-container">
+                        <table class="details-table">
+                            <thead><tr><th>Age</th><th>Start Balance</th><th>Growth</th><th>SS Income</th><th>Expenses</th><th>Net Change</th><th>End Balance</th></tr></thead>
+                            <tbody id="table-body-67"></tbody>
+                        </table>
+                    </div>
+                </details>
+                <details>
+                    <summary>Details for Claiming at 70</summary>
+                    <div class="table-container">
+                        <table class="details-table">
+                            <thead><tr><th>Age</th><th>Start Balance</th><th>Growth</th><th>SS Income</th><th>Expenses</th><th>Net Change</th><th>End Balance</th></tr></thead>
+                            <tbody id="table-body-70"></tbody>
+                        </table>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <div id="formulas-section">
+            <h2>How It's Calculated (Per Year)</h2>
+            <div class="formula"><strong>Growth</strong> = Start Balance × Investment Return</div>
+            <div class="formula"><strong>Expenses</strong> = Previous Year's Expenses × (1 + Inflation Rate)</div>
+            <div class="formula"><strong>SS Income (COLA)</strong> = Previous Year's SS Income × (1 + Inflation Rate)</div>
+            <div class="formula"><strong>Net Change</strong> = Growth + SS Income - Expenses</div>
+            <div class="formula"><strong>End Balance</strong> = Start Balance + Net Change</div>
+        </div>
+    </div>
+
+    <script>
+        let portfolioChart = null;
+
+        const formatCurrency = (num) => {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(num);
+        };
+
+        document.getElementById('ssa-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const currentSavings = parseFloat(document.getElementById('currentSavings').value);
+            const benefit62 = parseFloat(document.getElementById('benefit62').value);
+            const benefit67 = parseFloat(document.getElementById('benefit67').value);
+            const benefit70 = parseFloat(document.getElementById('benefit70').value);
+            const lifeExpectancy = parseInt(document.getElementById('lifeExpectancy').value);
+            const annualExpenses = parseFloat(document.getElementById('annualExpenses').value);
+            const investmentReturn = parseFloat(document.getElementById('investmentReturn').value) / 100;
+            const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
+
+            function calculateScenario(claimAge, annualBenefit) {
+                let portfolioValue = currentSavings;
+                let totalSSPayout = 0;
+                const history = [];
+                let currentAnnualExpenses = annualExpenses;
+                let currentAnnualBenefit = annualBenefit;
+
+                for (let age = 62; age <= lifeExpectancy; age++) {
+                    const startBalance = portfolioValue < 0 ? 0 : portfolioValue;
+                    const growth = startBalance * investmentReturn;
+                    
+                    let ssIncome = 0;
+                    if (age >= claimAge) {
+                        ssIncome = currentAnnualBenefit;
+                        totalSSPayout += ssIncome;
+                        currentAnnualBenefit *= (1 + inflationRate);
+                    }
+                    
+                    const netChange = growth + ssIncome - currentAnnualExpenses;
+                    const endBalance = startBalance + netChange;
+                    
+                    history.push({ age, startBalance, growth, ssIncome, annualExpenses: currentAnnualExpenses, netChange, endBalance });
+                    
+                    portfolioValue = endBalance;
+                    currentAnnualExpenses *= (1 + inflationRate);
+                }
+                return { history, totalSSPayout };
+            }
+
+            const scenario62 = calculateScenario(62, benefit62 * 12);
+            const scenario67 = calculateScenario(67, benefit67 * 12);
+            const scenario70 = calculateScenario(70, benefit70 * 12);
+
+            displayResults({
+                s62: scenario62,
+                s67: scenario67,
+                s70: scenario70
+            });
+        });
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const summaryDiv = document.getElementById('summary');
+            const summaryTableBody = document.getElementById('summary-table-body');
+            const formulasDiv = document.getElementById('formulas-section');
+            
+            const final62 = data.s62.history.length > 0 ? data.s62.history[data.s62.history.length - 1].endBalance : 0;
+            const final67 = data.s67.history.length > 0 ? data.s67.history[data.s67.history.length - 1].endBalance : 0;
+            const final70 = data.s70.history.length > 0 ? data.s70.history[data.s70.history.length - 1].endBalance : 0;
+
+            const maxFinalValue = Math.max(final62, final67, final70);
+            
+            let bestStrategyAge = 0;
+            if (maxFinalValue <= 0) {
+                 summaryDiv.innerHTML = `Based on your inputs, none of the strategies appear sustainable.`;
+            } else {
+                if (final62 === maxFinalValue) bestStrategyAge = 62;
+                else if (final67 === maxFinalValue) bestStrategyAge = 67;
+                else bestStrategyAge = 70;
+                summaryDiv.innerHTML = `Based on your inputs, the optimal strategy is to <strong>claim at age ${bestStrategyAge}</strong>, resulting in the largest final portfolio of <strong>${formatCurrency(maxFinalValue)}</strong>.`;
+            }
+
+            const class62 = final62 === maxFinalValue && maxFinalValue > 0 ? 'class="highlight-col"' : '';
+            const class67 = final67 === maxFinalValue && maxFinalValue > 0 ? 'class="highlight-col"' : '';
+            const class70 = final70 === maxFinalValue && maxFinalValue > 0 ? 'class="highlight-col"' : '';
+
+            summaryTableBody.innerHTML = `
+                <tr>
+                    <th><strong>Final Portfolio Value at Age ${document.getElementById('lifeExpectancy').value}</strong></th>
+                    <td ${class62}><strong>${formatCurrency(final62)}</strong></td>
+                    <td ${class67}><strong>${formatCurrency(final67)}</strong></td>
+                    <td ${class70}><strong>${formatCurrency(final70)}</strong></td>
+                </tr>
+                <tr>
+                    <th>Total Lifetime Payout from SSA</th>
+                    <td ${class62}>${formatCurrency(data.s62.totalSSPayout)}</td>
+                    <td ${class67}>${formatCurrency(data.s67.totalSSPayout)}</td>
+                    <td ${class70}>${formatCurrency(data.s70.totalSSPayout)}</td>
+                </tr>
+            `;
+
+            populateTable('table-body-62', data.s62.history);
+            populateTable('table-body-67', data.s67.history);
+            populateTable('table-body-70', data.s70.history);
+
+            drawChart(data);
+            resultsDiv.style.display = 'block';
+            formulasDiv.style.display = 'block';
+        }
+
+        function populateTable(tableId, history) {
+            const tableBody = document.getElementById(tableId);
+            tableBody.innerHTML = '';
+            history.forEach(year => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${year.age}</td>
+                    <td>${formatCurrency(year.startBalance)}</td>
+                    <td>${formatCurrency(year.growth)}</td>
+                    <td>${formatCurrency(year.ssIncome)}</td>
+                    <td>-${formatCurrency(year.annualExpenses)}</td>
+                    <td>${formatCurrency(year.netChange)}</td>
+                    <td>${formatCurrency(year.endBalance)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function drawChart(data) {
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            const labels = data.s62.history.map(d => d.age);
+
+            const rootStyles = getComputedStyle(document.documentElement);
+            const color62 = rootStyles.getPropertyValue('--color-62').trim();
+            const color67 = rootStyles.getPropertyValue('--color-67').trim();
+            const color70 = rootStyles.getPropertyValue('--color-70').trim();
+
+            const datasets = [
+                { label: 'Claim at 62', data: data.s62.history.map(d => d.endBalance), borderColor: color62, tension: 0.1, fill: false },
+                { label: 'Claim at 67', data: data.s67.history.map(d => d.endBalance), borderColor: color67, tension: 0.1, fill: false },
+                { label: 'Claim at 70', data: data.s70.history.map(d => d.endBalance), borderColor: color70, tension: 0.1, fill: false }
+            ];
+
+            const gridColor = rootStyles.getPropertyValue('--chart-grid-color').trim();
+            const fontColor = rootStyles.getPropertyValue('--text-color').trim();
+
+            if (portfolioChart) {
+                portfolioChart.destroy();
+            }
+
+            portfolioChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Projected Portfolio Balance by Claiming Strategy', color: fontColor, font: { size: 16, family: 'Poppins' } },
+                        legend: { labels: { color: fontColor, font: { family: 'Poppins' } } },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatCurrency(context.parsed.y)}` } }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: fontColor, callback: (value) => formatCurrency(value), font: { family: 'Poppins' } },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            ticks: { color: fontColor, font: { family: 'Poppins' } },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

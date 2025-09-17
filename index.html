@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRE Tools - Financial Calculators</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-color: #3a3a3a;
+            --heading-color: #1a253c;
+            --subtle-text-color: #7f8c8d;
+            --border-color: #e9ecef;
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --disclaimer-bg: #fff3cd;
+            --disclaimer-text: #856404;
+            --disclaimer-border: #ffeeba;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121a26;
+                --card-bg-color: #1e293b;
+                --text-color: #cbd5e1;
+                --heading-color: #ffffff;
+                --subtle-text-color: #94a3b8;
+                --border-color: #334155;
+                --primary-color: #38bdf8;
+                --primary-hover-color: #7dd3fc;
+                --disclaimer-bg: #422006;
+                --disclaimer-text: #fed7aa;
+                --disclaimer-border: #9a3412;
+            }
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card-bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: var(--heading-color);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        p.subtitle {
+            color: var(--subtle-text-color);
+            margin-bottom: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--disclaimer-text);
+            background-color: var(--disclaimer-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            border: 1px solid var(--disclaimer-border);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            text-align: left;
+        }
+        .tool-card {
+            background-color: var(--bg-color);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        .tool-card h2 {
+            margin-top: 0;
+            color: var(--heading-color);
+            font-size: 1.25em;
+        }
+        .tool-card p {
+            color: var(--subtle-text-color);
+            font-size: 0.95em;
+            flex-grow: 1;
+        }
+        .tool-card a {
+            display: inline-block;
+            text-decoration: none;
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .tool-card a:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        footer {
+            margin-top: 40px;
+            color: var(--subtle-text-color);
+            font-size: 0.9em;
+        }
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>FIRE Tools</h1>
+        <p class="subtitle">A collection of simple, powerful calculators to help you plan your journey to Financial Independence and Retirement.</p>
+        
+        <div class="disclaimer">
+            These calculators are for demonstration purposes only and do not constitute financial advice. Always consult with a qualified professional before making financial decisions.
+        </div>
+
+        <div class="tool-grid">
+            <div class="tool-card">
+                <h2>FIRE Calculator</h2>
+                <p>A year-by-year retirement simulator. Model your different account types (Taxable, Traditional, Roth) to project if your money will last through retirement.</p>
+                <a href="fire_calculator.html">Launch Calculator</a>
+            </div>
+            <div class="tool-card">
+                <h2>Social Security Claiming Calculator</h2>
+                <p>Analyze the impact of claiming Social Security at different ages to find the optimal strategy for your portfolio.</p>
+                <a href="ssa_calculator.html">Launch Calculator</a>
+            </div>
+            <div class="tool-card">
+                <h2>Simple Roth Conversion Calculator</h2>
+                <p>Analyze a one-time Roth conversion, modeling the crucial difference between paying taxes from the conversion versus from an external cash account.</p>
+                <a href="roth_simple_calculator.html">Launch Calculator</a>
+            </div>
+            <div class="tool-card">
+                <h2>Roth Conversion Ladder Calculator</h2>
+                <p>Model a multi-year Roth conversion strategy to see how it can minimize your lifetime tax bill during your early retirement years.</p>
+                <a href="roth_ladder_calculator.html">Launch Calculator</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>View the source code on <a href="https://github.com/quinnavila/fire_tools" target="_blank">GitHub</a>.</p>
+    </footer>
+
+</body>
+</html>

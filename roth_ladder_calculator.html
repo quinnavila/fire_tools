@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roth Conversion Ladder Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-color: #3a3a3a;
+            --heading-color: #1a253c;
+            --subtle-text-color: #7f8c8d;
+            --border-color: #e9ecef;
+            --input-bg-color: #f8f9fa;
+            --input-border-color: #ced4da;
+            --primary-color: #fd7e14;
+            --primary-hover-color: #e66a00;
+            --table-header-bg: #f8f9fa;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --highlight-bg: #fff3cd;
+            --disclaimer-bg: #fff3cd;
+            --disclaimer-text: #856404;
+            --disclaimer-border: #ffeeba;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121a26;
+                --card-bg-color: #1e293b;
+                --text-color: #cbd5e1;
+                --heading-color: #ffffff;
+                --subtle-text-color: #94a3b8;
+                --border-color: #334155;
+                --input-bg-color: #334155;
+                --input-border-color: #475569;
+                --primary-color: #fb923c;
+                --primary-hover-color: #f97316;
+                --table-header-bg: #334155;
+                --success-bg: #166534;
+                --success-text: #dcfce7;
+                --highlight-bg: #422006;
+                --disclaimer-bg: #422006;
+                --disclaimer-text: #fed7aa;
+                --disclaimer-border: #9a3412;
+            }
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card-bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: var(--heading-color);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        p.subtitle {
+            text-align: center;
+            color: var(--subtle-text-color);
+            margin-bottom: 20px;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--disclaimer-text);
+            background-color: var(--disclaimer-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--disclaimer-border);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .full-width { grid-column: 1 / -1; }
+        label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+        input[type="number"] {
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+        button {
+            grid-column: 1 / -1;
+            padding: 14px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        #results {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+        #summary-result {
+            font-size: 1.3em;
+            font-weight: 600;
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            background-color: var(--success-bg);
+            color: var(--success-text);
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .comparison-table th {
+            background-color: var(--table-header-bg);
+        }
+        .comparison-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        .highlight {
+            background-color: var(--highlight-bg);
+            font-weight: 700;
+        }
+        #ladderChart {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Roth Conversion Ladder Calculator</h1>
+        <p class="subtitle">Model a multi-year conversion strategy to see if it improves your final outcome.</p>
+        <div class="disclaimer">
+            This calculator is for demonstration purposes only and does not constitute financial advice.
+        </div>
+
+        <form id="ladder-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="tradBalance">Initial Traditional IRA Balance ($)</label>
+                    <input type="number" id="tradBalance" value="1000000" required>
+                </div>
+                <div class="form-group">
+                    <label for="taxableBalance">Initial Taxable Account Balance ($)</label>
+                    <input type="number" id="taxableBalance" value="300000" required>
+                </div>
+                <div class="form-group">
+                    <label for="annualConversion">Annual Conversion Amount ($)</label>
+                    <input type="number" id="annualConversion" value="100000" required>
+                </div>
+                <div class="form-group">
+                    <label for="conversionYears">Number of Conversion Years</label>
+                    <input type="number" id="conversionYears" value="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="growthYears">Years to Grow After Last Conversion</label>
+                    <input type="number" id="growthYears" value="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="conversionTaxRate">Tax Rate During Conversions (%)</label>
+                    <input type="number" id="conversionTaxRate" step="0.1" value="22.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="futureTaxRate">Tax Rate at Final Withdrawal (%)</label>
+                    <input type="number" id="futureTaxRate" step="0.1" value="24.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="iraReturn">IRA Rate of Return (%)</label>
+                    <input type="number" id="iraReturn" step="0.1" value="7.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="taxableReturn">Taxable Account Return (%)</label>
+                    <input type="number" id="taxableReturn" step="0.1" value="5.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="capGainsTaxRate">Tax on Taxable Growth (%)</label>
+                    <input type="number" id="capGainsTaxRate" step="0.1" value="15.0" required>
+                </div>
+            </div>
+            <button type="submit">Analyze Strategy</button>
+        </form>
+
+        <div id="results">
+            <div id="summary-result"></div>
+            <canvas id="ladderChart"></canvas>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>With Conversion Ladder</th>
+                        <th>Without Conversion Ladder</th>
+                    </tr>
+                </thead>
+                <tbody id="comparison-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let ladderChart = null;
+        const ladderForm = document.getElementById('ladder-form');
+        const resultsDiv = document.getElementById('results');
+        const summaryResultDiv = document.getElementById('summary-result');
+        const comparisonBody = document.getElementById('comparison-body');
+
+        const formatCurrency = (num) => {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
+        };
+
+        ladderForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const p = {
+                tradBalance: parseFloat(document.getElementById('tradBalance').value),
+                taxableBalance: parseFloat(document.getElementById('taxableBalance').value),
+                annualConversion: parseFloat(document.getElementById('annualConversion').value),
+                conversionYears: parseInt(document.getElementById('conversionYears').value),
+                growthYears: parseInt(document.getElementById('growthYears').value),
+                conversionTaxRate: parseFloat(document.getElementById('conversionTaxRate').value) / 100,
+                futureTaxRate: parseFloat(document.getElementById('futureTaxRate').value) / 100,
+                iraReturn: parseFloat(document.getElementById('iraReturn').value) / 100,
+                taxableReturn: parseFloat(document.getElementById('taxableReturn').value) / 100,
+                capGainsTaxRate: parseFloat(document.getElementById('capGainsTaxRate').value) / 100
+            };
+
+            // Scenario 1: With Conversion Ladder
+            let tradConv = p.tradBalance;
+            let taxableConv = p.taxableBalance;
+            let rothConv = 0;
+            let totalTaxesPaid = 0;
+
+            for (let i = 0; i < p.conversionYears; i++) {
+                const conversion = Math.min(p.annualConversion, tradConv);
+                const taxDue = conversion * p.conversionTaxRate;
+                
+                tradConv -= conversion;
+                taxableConv -= taxDue;
+                rothConv += conversion;
+                totalTaxesPaid += taxDue;
+
+                tradConv *= (1 + p.iraReturn);
+                taxableConv *= (1 + p.taxableReturn);
+                rothConv *= (1 + p.iraReturn);
+            }
+
+            for (let i = 0; i < p.growthYears; i++) {
+                tradConv *= (1 + p.iraReturn);
+                taxableConv *= (1 + p.taxableReturn);
+                rothConv *= (1 + p.iraReturn);
+            }
+
+            const finalTradConvAfterTax = tradConv * (1 - p.futureTaxRate);
+            const taxableConvPrincipal = p.taxableBalance - totalTaxesPaid;
+            const taxableConvGrowth = taxableConv - taxableConvPrincipal;
+            const taxableConvTax = Math.max(0, taxableConvGrowth) * p.capGainsTaxRate;
+            const finalTaxableConvAfterTax = taxableConv - taxableConvTax;
+            const finalWithConversion = finalTradConvAfterTax + finalTaxableConvAfterTax + rothConv;
+
+            // Scenario 2: Without Conversion Ladder
+            let tradNoConv = p.tradBalance;
+            let taxableNoConv = p.taxableBalance;
+            const totalYears = p.conversionYears + p.growthYears;
+
+            for (let i = 0; i < totalYears; i++) {
+                tradNoConv *= (1 + p.iraReturn);
+                taxableNoConv *= (1 + p.taxableReturn);
+            }
+
+            const finalTradNoConvAfterTax = tradNoConv * (1 - p.futureTaxRate);
+            const taxableNoConvGrowth = taxableNoConv - p.taxableBalance;
+            const taxableNoConvTax = Math.max(0, taxableNoConvGrowth) * p.capGainsTaxRate;
+            const finalTaxableNoConvAfterTax = taxableNoConv - taxableNoConvTax;
+            const finalWithoutConversion = finalTradNoConvAfterTax + finalTaxableNoConvAfterTax;
+
+            displayResults({
+                finalWithConversion,
+                finalWithoutConversion,
+                totalTaxesPaid,
+                finalTradConvAfterTax,
+                finalTaxableConvAfterTax,
+                rothConv,
+                finalTradNoConvAfterTax,
+                finalTaxableNoConvAfterTax
+            });
+        });
+
+        function displayResults(data) {
+            const difference = data.finalWithConversion - data.finalWithoutConversion;
+            summaryResultDiv.innerHTML = `The conversion ladder strategy is projected to result in <strong>${formatCurrency(Math.abs(difference))} ${difference >= 0 ? 'more' : 'less'}</strong> after-tax money.`;
+
+            const convHighlight = difference > 0 ? 'class="highlight"' : '';
+            const noConvHighlight = difference < 0 ? 'class="highlight"' : '';
+
+            comparisonBody.innerHTML = `
+                <tr>
+                    <td>Total Taxes Paid During Conversions</td>
+                    <td>${formatCurrency(data.totalTaxesPaid)}</td>
+                    <td>${formatCurrency(0)}</td>
+                </tr>
+                <tr>
+                    <td>Final Roth IRA Value</td>
+                    <td>${formatCurrency(data.rothConv)}</td>
+                    <td>${formatCurrency(0)}</td>
+                </tr>
+                <tr>
+                    <td>Final Traditional IRA Value (After-Tax)</td>
+                    <td>${formatCurrency(data.finalTradConvAfterTax)}</td>
+                    <td>${formatCurrency(data.finalTradNoConvAfterTax)}</td>
+                </tr>
+                <tr>
+                    <td>Final Taxable Account Value (After-Tax)</td>
+                    <td>${formatCurrency(data.finalTaxableConvAfterTax)}</td>
+                    <td>${formatCurrency(data.finalTaxableNoConvAfterTax)}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Final Value</strong></td>
+                    <td ${convHighlight}><strong>${formatCurrency(data.finalWithConversion)}</strong></td>
+                    <td ${noConvHighlight}><strong>${formatCurrency(data.finalWithoutConversion)}</strong></td>
+                </tr>
+            `;
+            
+            drawChart(data);
+            resultsDiv.style.display = 'block';
+        }
+
+        function drawChart(data) {
+            const ctx = document.getElementById('ladderChart').getContext('2d');
+            if (ladderChart) {
+                ladderChart.destroy();
+            }
+
+            const fontColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid-color').trim();
+
+            const rothColor = 'rgba(108, 52, 131, 0.8)';
+            const traditionalColor = 'rgba(40, 167, 69, 0.8)';
+            const taxableColor = 'rgba(0, 123, 255, 0.8)';
+
+            const labels = ['With Conversion Ladder', 'Without Conversion Ladder'];
+            const datasets = [
+                {
+                    label: 'Roth IRA',
+                    data: [data.rothConv, 0],
+                    backgroundColor: rothColor,
+                },
+                {
+                    label: 'Traditional IRA (After-Tax)',
+                    data: [data.finalTradConvAfterTax, data.finalTradNoConvAfterTax],
+                    backgroundColor: traditionalColor,
+                },
+                {
+                    label: 'Taxable Account (After-Tax)',
+                    data: [data.finalTaxableConvAfterTax, data.finalTaxableNoConvAfterTax],
+                    backgroundColor: taxableColor,
+                }
+            ];
+
+            ladderChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Final Portfolio Value by Strategy', color: fontColor, font: { size: 16, family: 'Poppins' } },
+                        legend: { labels: { color: fontColor, font: { family: 'Poppins' } } },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatCurrency(context.parsed.y)}` } }
+                    },
+                    scales: {
+                        x: { stacked: true, ticks: { color: fontColor, font: { family: 'Poppins' } }, grid: { display: false } },
+                        y: { 
+                            stacked: true, 
+                            ticks: { color: fontColor, callback: (value) => formatCurrency(value), font: { family: 'Poppins' } },
+                            grid: { color: gridColor },
+                            title: { display: true, text: 'Final After-Tax Value ($)', color: fontColor }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

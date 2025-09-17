@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRE Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-color: #3a3a3a;
+            --heading-color: #1a253c;
+            --subtle-text-color: #7f8c8d;
+            --border-color: #e9ecef;
+            --input-bg-color: #f8f9fa;
+            --input-border-color: #ced4da;
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --table-header-bg: #f8f9fa;
+            --formula-bg: #f8f9fa;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --failure-bg: #f8d7da;
+            --failure-text: #721c24;
+            --disclaimer-bg: #fff3cd;
+            --disclaimer-text: #856404;
+            --disclaimer-border: #ffeeba;
+            --chart-grid-color: rgba(0, 0, 0, 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121a26;
+                --card-bg-color: #1e293b;
+                --text-color: #cbd5e1;
+                --heading-color: #ffffff;
+                --subtle-text-color: #94a3b8;
+                --border-color: #334155;
+                --input-bg-color: #334155;
+                --input-border-color: #475569;
+                --primary-color: #38bdf8;
+                --primary-hover-color: #7dd3fc;
+                --table-header-bg: #334155;
+                --formula-bg: #334155;
+                --success-bg: #166534;
+                --success-text: #dcfce7;
+                --failure-bg: #991b1b;
+                --failure-text: #fee2e2;
+                --disclaimer-bg: #422006;
+                --disclaimer-text: #fed7aa;
+                --disclaimer-border: #9a3412;
+                --chart-grid-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: var(--card-bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            max-width: 1200px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        h1 {
+            text-align: center;
+            color: var(--heading-color);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        p.subtitle {
+            text-align: center;
+            color: var(--subtle-text-color);
+            margin-bottom: 20px;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--disclaimer-text);
+            background-color: var(--disclaimer-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--disclaimer-border);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .form-section-title {
+            grid-column: 1 / -1;
+            font-weight: 700;
+            color: var(--heading-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 20px;
+            margin-bottom: 0;
+        }
+        .account-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 20px;
+            align-items: flex-end;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            margin-top: 20px;
+        }
+        .account-row h4 {
+            margin: 0;
+            align-self: center;
+            color: var(--heading-color);
+        }
+        .add-account-btn {
+            grid-column: 1 / -1;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 1px dashed var(--input-border-color);
+            background-color: transparent;
+            color: var(--primary-color);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .add-account-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .remove-account-btn {
+            padding: 12px;
+            background-color: var(--failure-bg);
+            color: var(--failure-text);
+            border: 1px solid var(--failure-text);
+            border-radius: 8px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+        input[type="number"], input[type="text"] {
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+        button#calculate-btn {
+            grid-column: 1 / -1;
+            padding: 14px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            margin-top: 25px;
+            box-shadow: 0 4px 15px color-mix(in srgb, var(--primary-color) 30%, transparent);
+        }
+        button#calculate-btn:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        #results, #formulas-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+        #summary-result {
+            font-size: 1.3em;
+            font-weight: 600;
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .success { background-color: var(--success-bg); color: var(--success-text); }
+        .failure { background-color: var(--failure-bg); color: var(--failure-text); }
+        
+        details {
+            margin-top: 25px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        summary {
+            padding: 14px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: var(--formula-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        summary::after {
+            content: '+';
+            font-size: 1.5em;
+            transition: transform 0.2s ease-in-out;
+        }
+        details[open] > summary::after {
+            transform: rotate(45deg);
+        }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-top: 1px solid var(--border-color); padding: 12px; text-align: right; white-space: nowrap; }
+        th { background-color: var(--table-header-bg); text-align: center; font-weight: 600; }
+        
+        #formulas-section h2 { color: var(--heading-color); text-align: center; font-weight: 700; }
+        .formula { background-color: var(--formula-bg); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-family: 'Courier New', Courier, monospace; }
+        .formula strong { color: var(--primary-color); }
+        .formula-note { font-size: 0.9em; color: var(--subtle-text-color); margin-top: -5px; margin-left: 5px; }
+
+        @media (max-width: 900px) {
+            .account-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .account-row h4 {
+                grid-column: 1 / -1;
+                text-align: left;
+            }
+            .account-row .remove-account-btn {
+                grid-column: 2 / 3;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>FIRE Calculator</h1>
+        <p class="subtitle">Project your financial future by modeling different account types and tax implications.</p>
+        <div class="disclaimer">
+            This calculator is for demonstration purposes only and does not constitute financial advice.
+        </div>
+
+        <form id="calculator-form">
+            <div class="form-grid">
+                <h3 class="form-section-title">Investment Accounts</h3>
+                <div id="accounts-container">
+                </div>
+                <button type="button" class="add-account-btn">+ Add Another Taxable Account</button>
+
+                <h3 class="form-section-title">Retirement Plan & Assumptions</h3>
+                <div class="form-group">
+                    <label for="currentAge">Your Current Age</label>
+                    <input type="number" id="currentAge" value="65" required>
+                </div>
+                <div class="form-group">
+                    <label for="lifeExpectancy">Life Expectancy (Age)</label>
+                    <input type="number" id="lifeExpectancy" value="95" required>
+                </div>
+                 <div class="form-group">
+                    <label for="annualSpending">Annual Spending ($)</label>
+                    <input type="number" id="annualSpending" value="60000" step="100" required>
+                </div>
+                <div class="form-group">
+                    <label for="inflationRate">Annual Inflation Rate (%)</label>
+                    <input type="number" id="inflationRate" step="0.1" value="3.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="socialSecurity">Monthly Social Security (Post-Tax)</label>
+                    <input type="number" id="socialSecurity" value="2100" required>
+                </div>
+                <div class="form-group">
+                    <label for="ssStartAge">SS Start Age</label>
+                    <input type="number" id="ssStartAge" value="67" required>
+                </div>
+                 <div class="form-group">
+                    <label for="otherIncome">Other Annual Income (Post-Tax)</label>
+                    <input type="number" id="otherIncome" value="0" required>
+                </div>
+            </div>
+            <button type="submit" id="calculate-btn">Calculate Projection</button>
+        </form>
+
+        <div id="results">
+            <p id="summary-result"></p>
+            <canvas id="balanceChart"></canvas>
+            <details>
+                <summary>View Year-by-Year Breakdown</summary>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Age</th>
+                                <th>Spending</th>
+                                <th>Total Income</th>
+                                <th>Taxable W/D</th>
+                                <th>Trad. W/D</th>
+                                <th>Roth W/D</th>
+                                <th>Taxes Paid</th>
+                                <th>Taxable End</th>
+                                <th>Trad. End</th>
+                                <th>Roth End</th>
+                                <th>Total End</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body"></tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+
+        <div id="formulas-section">
+            <h2>How It's Calculated</h2>
+            <div class="formula"><strong>1. Spending Gap:</strong> Net Need = Spending - (Social Security + Other Income)</div>
+            <div class="formula"><strong>2. Withdrawal Order:</strong> The Net Need is covered by withdrawing from accounts in this order: 1st from Taxable, 2nd from Traditional, 3rd from Roth.</div>
+            <p class="formula-note">Note: All user-added accounts are treated as 'Taxable' for the withdrawal order.</p>
+            <div class="formula"><strong>3. Taxes:</strong> Each withdrawal is "grossed up" by its specific tax rate to get the net amount needed. Roth withdrawals are tax-free.</div>
+            <div class="formula"><strong>4. Growth:</strong> The remaining balance in each account grows by its specific rate of return.</div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+        const accountsContainer = document.getElementById('accounts-container');
+        const addAccountBtn = document.querySelector('.add-account-btn');
+
+        const defaultAccounts = [
+            { name: 'Taxable', balance: 250000, return: 5.0, tax: 15.0, type: 'taxable' },
+            { name: 'Traditional IRA/401k', balance: 500000, return: 6.0, tax: 22.0, type: 'traditional' },
+            { name: 'Roth IRA/401k', balance: 250000, return: 7.0, tax: 0, type: 'roth', taxDisabled: true }
+        ];
+
+        function createAccountRow(account) {
+            const accountRow = document.createElement('div');
+            accountRow.className = 'account-row';
+            accountRow.dataset.type = account.type;
+
+            accountRow.innerHTML = `
+                <h4>${account.name}</h4>
+                <div class="form-group">
+                    <label>Balance ($)</label>
+                    <input type="number" class="account-balance" value="${account.balance}" required>
+                </div>
+                <div class="form-group">
+                    <label>Annual Return (%)</label>
+                    <input type="number" class="account-return" step="0.1" value="${account.return}" required>
+                </div>
+                <div class="form-group">
+                    <label>Tax Rate (%)</label>
+                    <input type="number" class="account-tax" step="0.1" value="${account.tax}" ${account.taxDisabled ? 'disabled' : ''} required>
+                </div>
+                ${account.removable ? '<button type="button" class="remove-account-btn">X</button>' : '<div></div>'}
+            `;
+            accountsContainer.appendChild(accountRow);
+        }
+
+        function initializeDefaultAccounts() {
+            accountsContainer.innerHTML = '';
+            defaultAccounts.forEach(createAccountRow);
+        }
+
+        addAccountBtn.addEventListener('click', () => {
+            createAccountRow({ name: 'New Taxable Account', balance: 0, return: 5.0, tax: 15.0, type: 'taxable', removable: true });
+        });
+
+        accountsContainer.addEventListener('click', (event) => {
+            if (event.target.classList.contains('remove-account-btn')) {
+                event.target.closest('.account-row').remove();
+            }
+        });
+
+        const formatCurrency = (num) => {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
+        };
+
+        document.getElementById('calculator-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const currentAge = parseInt(document.getElementById('currentAge').value);
+            const lifeExpectancy = parseInt(document.getElementById('lifeExpectancy').value);
+
+            if (lifeExpectancy <= currentAge) {
+                alert('Life Expectancy must be greater than your Current Age.');
+                return;
+            }
+
+            const accounts = [];
+            document.querySelectorAll('.account-row').forEach(row => {
+                accounts.push({
+                    type: row.dataset.type,
+                    balance: parseFloat(row.querySelector('.account-balance').value),
+                    returnRate: parseFloat(row.querySelector('.account-return').value) / 100,
+                    taxRate: parseFloat(row.querySelector('.account-tax').value) / 100
+                });
+            });
+
+            let currentSpendingNeeds = parseFloat(document.getElementById('annualSpending').value);
+            const monthlySocialSecurity = parseFloat(document.getElementById('socialSecurity').value);
+            const annualSocialSecurity = monthlySocialSecurity * 12;
+            const ssStartAge = parseInt(document.getElementById('ssStartAge').value);
+            const otherIncome = parseFloat(document.getElementById('otherIncome').value);
+            
+            const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100;
+            
+            const yearsToPlan = lifeExpectancy - currentAge;
+            let age = currentAge;
+            const resultsData = [];
+            let moneyRanOut = false;
+
+            for (let year = 1; year <= yearsToPlan; year++) {
+                const socialSecurityBenefit = (age >= ssStartAge) ? annualSocialSecurity : 0;
+                const totalIncome = socialSecurityBenefit + otherIncome;
+                let netWithdrawalNeeded = Math.max(0, currentSpendingNeeds - totalIncome);
+                
+                let yearData = {
+                    age,
+                    spendingNeed: currentSpendingNeeds,
+                    totalIncome,
+                    taxableWithdrawal: 0,
+                    traditionalWithdrawal: 0,
+                    rothWithdrawal: 0,
+                    taxesPaid: 0,
+                };
+
+                const withdrawalOrder = ['taxable', 'traditional', 'roth'];
+                withdrawalOrder.forEach(type => {
+                    if (netWithdrawalNeeded > 0) {
+                        const accountsOfType = accounts.filter(acc => acc.type === type);
+                        accountsOfType.forEach(account => {
+                            if (netWithdrawalNeeded > 0 && account.balance > 0) {
+                                const taxRate = account.taxRate || 0;
+                                const grossNeeded = netWithdrawalNeeded / (1 - taxRate);
+                                const pullAmount = Math.min(grossNeeded, account.balance);
+                                const netFromPull = pullAmount * (1 - taxRate);
+                                
+                                account.balance -= pullAmount;
+                                yearData[`${type}Withdrawal`] += pullAmount;
+                                yearData.taxesPaid += pullAmount * taxRate;
+                                netWithdrawalNeeded -= netFromPull;
+                            }
+                        });
+                    }
+                });
+
+                let totalEndBalance = 0;
+                accounts.forEach(account => {
+                    account.balance += account.balance * account.returnRate;
+                    totalEndBalance += account.balance;
+                    yearData[`${account.type}End`] = (yearData[`${account.type}End`] || 0) + account.balance;
+                });
+                yearData.totalEnd = totalEndBalance;
+                resultsData.push(yearData);
+
+                if (totalEndBalance <= 0 && netWithdrawalNeeded > 0) {
+                    moneyRanOut = true;
+                    break;
+                }
+
+                age++;
+                currentSpendingNeeds *= (1 + inflationRate);
+            }
+
+            displayResults(resultsData, moneyRanOut, lifeExpectancy);
+        });
+
+        function displayResults(data, moneyRanOut, lifeExpectancy) {
+            const resultsDiv = document.getElementById('results');
+            const formulasDiv = document.getElementById('formulas-section');
+            const summaryP = document.getElementById('summary-result');
+            const tableBody = document.getElementById('results-table-body');
+
+            tableBody.innerHTML = '';
+            summaryP.className = '';
+
+            if (moneyRanOut) {
+                const lastYearData = data[data.length - 1];
+                summaryP.textContent = `Your savings are projected to run out at age ${lastYearData.age}.`;
+                summaryP.classList.add('failure');
+            } else {
+                const finalBalance = data.length > 0 ? data[data.length - 1].totalEnd : 0;
+                summaryP.innerHTML = `Congratulations! Your savings are projected to last until your life expectancy of age ${lifeExpectancy}, ending with a projected portfolio of <strong>${formatCurrency(finalBalance)}</strong>.`;
+                summaryP.classList.add('success');
+            }
+
+            data.forEach(d => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${d.age}</td>
+                    <td>${formatCurrency(d.spendingNeed)}</td>
+                    <td>${formatCurrency(d.totalIncome)}</td>
+                    <td>${formatCurrency(d.taxableWithdrawal)}</td>
+                    <td>${formatCurrency(d.traditionalWithdrawal)}</td>
+                    <td>${formatCurrency(d.rothWithdrawal)}</td>
+                    <td>${formatCurrency(d.taxesPaid)}</td>
+                    <td>${formatCurrency(d.taxableEnd || 0)}</td>
+                    <td>${formatCurrency(d.traditionalEnd || 0)}</td>
+                    <td>${formatCurrency(d.rothEnd || 0)}</td>
+                    <td><strong>${formatCurrency(d.totalEnd)}</strong></td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            drawChart(data);
+            resultsDiv.style.display = 'block';
+            formulasDiv.style.display = 'block';
+        }
+
+        function drawChart(data) {
+            const ctx = document.getElementById('balanceChart').getContext('2d');
+            const labels = data.map(d => d.age);
+            
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid-color').trim();
+            const fontColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            
+            const taxableColor = 'rgba(0, 123, 255, 0.7)';
+            const traditionalColor = 'rgba(40, 167, 69, 0.7)';
+            const rothColor = 'rgba(108, 52, 131, 0.7)';
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Taxable',
+                            data: data.map(d => d.taxableEnd || 0),
+                            borderColor: taxableColor,
+                            backgroundColor: taxableColor,
+                            fill: true,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Traditional IRA/401k',
+                            data: data.map(d => d.traditionalEnd || 0),
+                            borderColor: traditionalColor,
+                            backgroundColor: traditionalColor,
+                            fill: true,
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Roth IRA/401k',
+                            data: data.map(d => d.rothEnd || 0),
+                            borderColor: rothColor,
+                            backgroundColor: rothColor,
+                            fill: true,
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Projected Portfolio Balance by Account Type', color: fontColor, font: { size: 16, family: 'Poppins' } },
+                        legend: { labels: { color: fontColor, font: { family: 'Poppins' } } },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatCurrency(context.parsed.y)}` } }
+                    },
+                    scales: {
+                        y: { 
+                            stacked: true,
+                            ticks: { color: fontColor, callback: (value) => formatCurrency(value), font: { family: 'Poppins' } }, 
+                            grid: { color: gridColor } 
+                        },
+                        x: { 
+                            ticks: { color: fontColor, font: { family: 'Poppins' } }, 
+                            grid: { color: gridColor } 
+                        }
+                    }
+                }
+            });
+        }
+        
+        initializeDefaultAccounts();
+    </script>
+
+</body>
+</html>

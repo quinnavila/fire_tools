@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roth Conversion Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7f9;
+            --card-bg-color: #ffffff;
+            --text-color: #3a3a3a;
+            --heading-color: #1a253c;
+            --subtle-text-color: #7f8c8d;
+            --border-color: #e9ecef;
+            --input-bg-color: #f8f9fa;
+            --input-border-color: #ced4da;
+            --primary-color: #28a745;
+            --primary-hover-color: #218838;
+            --table-header-bg: #f8f9fa;
+            --formula-bg: #f8f9fa;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --failure-bg: #f8d7da;
+            --failure-text: #721c24;
+            --highlight-bg: #d1ecf1;
+            --disclaimer-bg: #fff3cd;
+            --disclaimer-text: #856404;
+            --disclaimer-border: #ffeeba;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121a26;
+                --card-bg-color: #1e293b;
+                --text-color: #cbd5e1;
+                --heading-color: #ffffff;
+                --subtle-text-color: #94a3b8;
+                --border-color: #334155;
+                --input-bg-color: #334155;
+                --input-border-color: #475569;
+                --primary-color: #4ade80;
+                --primary-hover-color: #86efac;
+                --table-header-bg: #334155;
+                --formula-bg: #334155;
+                --success-bg: #166534;
+                --success-text: #dcfce7;
+                --failure-bg: #991b1b;
+                --failure-text: #fee2e2;
+                --highlight-bg: #0e7490;
+                --disclaimer-bg: #422006;
+                --disclaimer-text: #fed7aa;
+                --disclaimer-border: #9a3412;
+            }
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card-bg-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: var(--heading-color);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        p.subtitle {
+            text-align: center;
+            color: var(--subtle-text-color);
+            margin-bottom: 20px;
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--disclaimer-text);
+            background-color: var(--disclaimer-bg);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--disclaimer-border);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .full-width { grid-column: 1 / -1; }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: var(--input-bg-color);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--input-border-color);
+        }
+        .checkbox-group label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            width: 1.3em;
+            height: 1.3em;
+            cursor: pointer;
+        }
+        #side-fund-group {
+            grid-column: 1 / -1;
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: -10px;
+        }
+        label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+        input[type="number"] {
+            padding: 12px;
+            border: 1px solid var(--input-border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+        }
+        button {
+            grid-column: 1 / -1;
+            padding: 14px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        #results {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+        #summary-result {
+            font-size: 1.3em;
+            font-weight: 600;
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        .success { background-color: var(--success-bg); color: var(--success-text); }
+        .failure { background-color: var(--failure-bg); color: var(--failure-text); }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .comparison-table th {
+            background-color: var(--table-header-bg);
+        }
+        .comparison-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        .highlight {
+            background-color: var(--highlight-bg);
+            font-weight: 700;
+        }
+        #conversionChart {
+            margin-top: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid, #side-fund-group { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Roth Conversion Calculator</h1>
+        <p class="subtitle">Compare paying taxes now vs. paying them in retirement to see which is better for you.</p>
+        <div class="disclaimer">
+            This calculator is for demonstration purposes only and does not constitute financial advice.
+        </div>
+
+        <form id="conversion-form">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="conversionAmount">Amount to Convert ($)</label>
+                    <input type="number" id="conversionAmount" value="100000" required>
+                </div>
+                <div class="form-group full-width checkbox-group">
+                    <input type="checkbox" id="payFromCash">
+                    <label for="payFromCash">Pay conversion taxes from an external cash account</label>
+                </div>
+                <div id="side-fund-group">
+                    <div class="form-group">
+                        <label for="sideFundReturn">Side-Fund Annual Return (%)</label>
+                        <input type="number" id="sideFundReturn" step="0.1" value="5.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="capitalGainsRate">Side-Fund Tax on Growth (%)</label>
+                        <input type="number" id="capitalGainsRate" step="0.1" value="15.0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="currentTaxRate">Current Tax Rate on Conversion (%)</label>
+                    <input type="number" id="currentTaxRate" step="0.1" value="24.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="futureTaxRate">Future Tax Rate on Withdrawal (%)</label>
+                    <input type="number" id="futureTaxRate" step="0.1" value="22.0" required>
+                </div>
+                <div class="form-group">
+                    <label for="yearsToGrow">Years Until Withdrawal</label>
+                    <input type="number" id="yearsToGrow" value="15" required>
+                </div>
+                <div class="form-group">
+                    <label for="iraReturn">IRA/Roth Annual Rate of Return (%)</label>
+                    <input type="number" id="iraReturn" step="0.1" value="7.0" required>
+                </div>
+            </div>
+            <button type="submit">Analyze Conversion</button>
+        </form>
+
+        <div id="results">
+            <div id="summary-result"></div>
+            <canvas id="conversionChart"></canvas>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Convert to Roth</th>
+                        <th>Keep as Traditional</th>
+                    </tr>
+                </thead>
+                <tbody id="comparison-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let conversionChart = null;
+        const conversionForm = document.getElementById('conversion-form');
+        const resultsDiv = document.getElementById('results');
+        const summaryResultDiv = document.getElementById('summary-result');
+        const comparisonBody = document.getElementById('comparison-body');
+        const payFromCashCheckbox = document.getElementById('payFromCash');
+        const sideFundGroup = document.getElementById('side-fund-group');
+
+        payFromCashCheckbox.addEventListener('change', function() {
+            sideFundGroup.style.display = this.checked ? 'grid' : 'none';
+        });
+
+        const formatCurrency = (num) => {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(num);
+        };
+
+        conversionForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const conversionAmount = parseFloat(document.getElementById('conversionAmount').value);
+            const currentTaxRate = parseFloat(document.getElementById('currentTaxRate').value) / 100;
+            const futureTaxRate = parseFloat(document.getElementById('futureTaxRate').value) / 100;
+            const yearsToGrow = parseInt(document.getElementById('yearsToGrow').value);
+            const iraReturn = parseFloat(document.getElementById('iraReturn').value) / 100;
+            const payTaxesFromCash = payFromCashCheckbox.checked;
+            const capitalGainsRate = parseFloat(document.getElementById('capitalGainsRate').value) / 100;
+            const sideFundReturn = parseFloat(document.getElementById('sideFundReturn').value) / 100;
+
+            let results = {};
+            const taxPaidNow = conversionAmount * currentTaxRate;
+
+            const finalTraditionalValue = conversionAmount * Math.pow(1 + iraReturn, yearsToGrow);
+            const taxPaidLater = finalTraditionalValue * futureTaxRate;
+            const spendableTraditional = finalTraditionalValue - taxPaidLater;
+
+            if (payTaxesFromCash) {
+                const initialRothAmount = conversionAmount;
+                const finalRothValue = initialRothAmount * Math.pow(1 + iraReturn, yearsToGrow);
+                const spendableRoth = finalRothValue;
+
+                const initialSideFund = taxPaidNow;
+                const finalSideFundValue = initialSideFund * Math.pow(1 + sideFundReturn, yearsToGrow);
+                const sideFundGrowth = finalSideFundValue - initialSideFund;
+                const taxOnSideFund = sideFundGrowth * capitalGainsRate;
+                const spendableSideFund = finalSideFundValue - taxOnSideFund;
+                const totalSpendableTraditional = spendableTraditional + spendableSideFund;
+                
+                results = { isCashPayment: true, taxPaidNow, spendableRoth, spendableTraditional, spendableSideFund, totalSpendableTraditional };
+            } else {
+                const initialRothAmount = conversionAmount - taxPaidNow;
+                const finalRothValue = initialRothAmount * Math.pow(1 + iraReturn, yearsToGrow);
+                const spendableRoth = finalRothValue;
+                
+                results = { isCashPayment: false, taxPaidNow, initialRothAmount, spendableRoth, spendableTraditional, conversionAmount, finalTraditionalValue };
+            }
+            
+            displayResults(results);
+        });
+
+        function displayResults(data) {
+            summaryResultDiv.className = '';
+            const finalRoth = data.spendableRoth;
+            const finalTraditional = data.isCashPayment ? data.totalSpendableTraditional : data.spendableTraditional;
+            const difference = finalRoth - finalTraditional;
+
+            if (difference > 0) {
+                summaryResultDiv.innerHTML = `Converting is projected to be better, leaving you with <strong>${formatCurrency(difference)}</strong> more.`;
+                summaryResultDiv.classList.add('success');
+            } else if (difference < 0) {
+                summaryResultDiv.innerHTML = `Keeping it Traditional is projected to be better, leaving you with <strong>${formatCurrency(Math.abs(difference))}</strong> more.`;
+                summaryResultDiv.classList.add('failure');
+            } else {
+                summaryResultDiv.textContent = 'The outcome is projected to be the same for both scenarios.';
+            }
+
+            const rothHighlight = difference > 0 ? 'class="highlight"' : '';
+            const traditionalHighlight = difference < 0 ? 'class="highlight"' : '';
+
+            if (data.isCashPayment) {
+                comparisonBody.innerHTML = `
+                    <tr>
+                        <td>Immediate Tax Bill</td>
+                        <td>${formatCurrency(data.taxPaidNow)}</td>
+                        <td>(Tax money is invested instead)</td>
+                    </tr>
+                    <tr>
+                        <td>IRA Value at Withdrawal</td>
+                        <td>${formatCurrency(data.spendableRoth)}</td>
+                        <td>${formatCurrency(data.spendableTraditional)}</td>
+                    </tr>
+                    <tr>
+                        <td>Taxable Side-Fund After-Tax Value</td>
+                        <td>${formatCurrency(0)}</td>
+                        <td>+ ${formatCurrency(data.spendableSideFund)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total After-Tax Value</strong></td>
+                        <td ${rothHighlight}><strong>${formatCurrency(data.spendableRoth)}</strong></td>
+                        <td ${traditionalHighlight}><strong>${formatCurrency(data.totalSpendableTraditional)}</strong></td>
+                    </tr>
+                `;
+            } else {
+                comparisonBody.innerHTML = `
+                    <tr>
+                        <td>Taxes Paid (from conversion)</td>
+                        <td>-${formatCurrency(data.taxPaidNow)}</td>
+                        <td>${formatCurrency(0)}</td>
+                    </tr>
+                    <tr>
+                        <td>Initial Amount Invested</td>
+                        <td>${formatCurrency(data.initialRothAmount)}</td>
+                        <td>${formatCurrency(data.conversionAmount)}</td>
+                    </tr>
+                    <tr>
+                        <td>Taxes Paid at Withdrawal</td>
+                        <td>${formatCurrency(0)}</td>
+                        <td>-${formatCurrency(data.finalTraditionalValue - data.spendableTraditional)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Final After-Tax Value</strong></td>
+                        <td ${rothHighlight}><strong>${formatCurrency(data.spendableRoth)}</strong></td>
+                        <td ${traditionalHighlight}><strong>${formatCurrency(data.spendableTraditional)}</strong></td>
+                    </tr>
+                `;
+            }
+
+            drawChart(data);
+            resultsDiv.style.display = 'block';
+        }
+
+        function drawChart(data) {
+            const ctx = document.getElementById('conversionChart').getContext('2d');
+            if (conversionChart) {
+                conversionChart.destroy();
+            }
+
+            const fontColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid-color').trim();
+
+            const rothColor = 'rgba(108, 52, 131, 0.8)';
+            const traditionalColor = 'rgba(40, 167, 69, 0.8)';
+            const sideFundColor = 'rgba(0, 123, 255, 0.8)';
+
+            const labels = ['Convert to Roth', 'Keep as Traditional'];
+            const datasets = [
+                {
+                    label: 'Roth IRA Value',
+                    data: [data.spendableRoth, 0],
+                    backgroundColor: rothColor,
+                },
+                {
+                    label: 'Traditional IRA Value (After-Tax)',
+                    data: [0, data.spendableTraditional],
+                    backgroundColor: traditionalColor,
+                },
+                {
+                    label: 'Side-Fund Value (After-Tax)',
+                    data: [0, data.isCashPayment ? data.spendableSideFund : 0],
+                    backgroundColor: sideFundColor,
+                }
+            ];
+
+            conversionChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Comparison of Final After-Tax Values', color: fontColor, font: { size: 16, family: 'Poppins' } },
+                        legend: { labels: { color: fontColor, font: { family: 'Poppins' } } },
+                        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${formatCurrency(context.parsed.y)}` } }
+                    },
+                    scales: {
+                        x: { stacked: true, ticks: { color: fontColor, font: { family: 'Poppins' } }, grid: { display: false } },
+                        y: { 
+                            stacked: true, 
+                            ticks: { color: fontColor, callback: (value) => formatCurrency(value), font: { family: 'Poppins' } },
+                            grid: { color: gridColor },
+                            title: { display: true, text: 'Final After-Tax Value ($)', color: fontColor }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
