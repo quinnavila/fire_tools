@@ -276,11 +276,11 @@
                 <h3 class="form-section-title">Retirement Plan & Assumptions</h3>
                 <div class="form-group">
                     <label for="currentAge">Your Current Age</label>
-                    <input type="number" id="currentAge" value="65" required>
+                    <input type="number" id="currentAge" value="45" required>
                 </div>
                 <div class="form-group">
                     <label for="lifeExpectancy">Life Expectancy (Age)</label>
-                    <input type="number" id="lifeExpectancy" value="95" required>
+                    <input type="number" id="lifeExpectancy" value="90" required>
                 </div>
                  <div class="form-group">
                     <label for="annualSpending">Annual Spending ($)</label>
@@ -337,7 +337,7 @@
         <div id="formulas-section">
             <h2>How It's Calculated</h2>
             <div class="formula"><strong>1. Spending Gap:</strong> Net Need = Spending - (Social Security + Other Income)</div>
-            <div class="formula"><strong>2. Withdrawal Order:</strong> The Net Need is covered by withdrawing from accounts in this order: 1st from Taxable, 2nd from Traditional, 3rd from Roth.</div>
+            <div class="formula"><strong>2. Withdrawal Order:</strong> Before age 59.5, withdrawals are only from Taxable accounts. After 59.5, the order is Taxable -> Traditional -> Roth.</div>
             <p class="formula-note">Note: All user-added accounts are treated as 'Taxable' for the withdrawal order.</p>
             <div class="formula"><strong>3. Taxes:</strong> Each withdrawal is "grossed up" by its specific tax rate to get the net amount needed. Roth withdrawals are tax-free.</div>
             <div class="formula"><strong>4. Growth:</strong> The remaining balance in each account grows by its specific rate of return.</div>
@@ -350,7 +350,7 @@
         const addAccountBtn = document.querySelector('.add-account-btn');
 
         const defaultAccounts = [
-            { name: 'Taxable', balance: 250000, return: 5.0, tax: 15.0, type: 'taxable' },
+            { name: 'Taxable', balance: 1000000, return: 5.0, tax: 15.0, type: 'taxable' },
             { name: 'Traditional IRA/401k', balance: 500000, return: 6.0, tax: 22.0, type: 'traditional' },
             { name: 'Roth IRA/401k', balance: 250000, return: 7.0, tax: 0, type: 'roth', taxDisabled: true }
         ];
@@ -431,6 +431,7 @@
             let age = currentAge;
             const resultsData = [];
             let moneyRanOut = false;
+            let bridgeFailureAge = 0;
 
             for (let year = 1; year <= yearsToPlan; year++) {
                 const socialSecurityBenefit = (age >= ssStartAge) ? annualSocialSecurity : 0;
@@ -447,7 +448,8 @@
                     taxesPaid: 0,
                 };
 
-                const withdrawalOrder = ['taxable', 'traditional', 'roth'];
+                const withdrawalOrder = age < 59.5 ? ['taxable'] : ['taxable', 'traditional', 'roth'];
+                
                 withdrawalOrder.forEach(type => {
                     if (netWithdrawalNeeded > 0) {
                         const accountsOfType = accounts.filter(acc => acc.type === type);
@@ -467,6 +469,13 @@
                     }
                 });
 
+                if (netWithdrawalNeeded > 0) {
+                    moneyRanOut = true;
+                    if (age < 59.5) {
+                        bridgeFailureAge = age;
+                    }
+                }
+
                 let totalEndBalance = 0;
                 accounts.forEach(account => {
                     account.balance += account.balance * account.returnRate;
@@ -476,8 +485,7 @@
                 yearData.totalEnd = totalEndBalance;
                 resultsData.push(yearData);
 
-                if (totalEndBalance <= 0 && netWithdrawalNeeded > 0) {
-                    moneyRanOut = true;
+                if (moneyRanOut) {
                     break;
                 }
 
@@ -485,10 +493,10 @@
                 currentSpendingNeeds *= (1 + inflationRate);
             }
 
-            displayResults(resultsData, moneyRanOut, lifeExpectancy);
+            displayResults(resultsData, moneyRanOut, lifeExpectancy, bridgeFailureAge);
         });
 
-        function displayResults(data, moneyRanOut, lifeExpectancy) {
+        function displayResults(data, moneyRanOut, lifeExpectancy, bridgeFailureAge) {
             const resultsDiv = document.getElementById('results');
             const formulasDiv = document.getElementById('formulas-section');
             const summaryP = document.getElementById('summary-result');
@@ -497,7 +505,10 @@
             tableBody.innerHTML = '';
             summaryP.className = '';
 
-            if (moneyRanOut) {
+            if (bridgeFailureAge > 0) {
+                summaryP.innerHTML = `<strong>Critical Failure:</strong> Your taxable savings ran out at age ${bridgeFailureAge}, before you can access retirement accounts penalty-free.`;
+                summaryP.classList.add('failure');
+            } else if (moneyRanOut) {
                 const lastYearData = data[data.length - 1];
                 summaryP.textContent = `Your savings are projected to run out at age ${lastYearData.age}.`;
                 summaryP.classList.add('failure');
